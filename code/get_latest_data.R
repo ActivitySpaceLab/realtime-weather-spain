@@ -9,6 +9,7 @@ library(lubridate)
 library(curl)
 library(jsonlite)
 library(RSocrata)
+library(data.table)
 
 source("auth/keys.R")
 
@@ -61,12 +62,11 @@ if(is.null(wdia)){
   wdia = get_data()
 }
 
-latest_weather = wdia %>% pivot_longer(cols = c(tamax, tamin, hr), names_to = "measure") %>% filter(!is.na(value))
+latest_weather = wdia %>% pivot_longer(cols = c(tamax, tamin, hr), names_to = "measure") %>% filter(!is.na(value)) %>% mutate(fint = as_datetime(fint)) %>% as.data.table()
 
-previous_weather = read_rds("data/spain_weather.Rds")
+previous_weather = fread("data/spain_weather.csv.gz")
 
 spain_weather = bind_rows(latest_weather, previous_weather) %>% distinct()
 
-write_rds(spain_weather, "data/spain_weather.Rds")
-
+fwrite(as.data.table(spain_weather), "data/spain_weather.csv.gz")
 

@@ -6,6 +6,3 @@
 
 # ignoring auth folder to avoid checking API keys into repo
 auth
-
-# ignoring data to avoid building up huge repo
-data
