@@ -20,4 +20,4 @@ git pull origin main
 git push origin main
 
 # run using:
-# qsub -q ceab -pe make 1 -l h_vmem=6G -m bea -M johnrbpalmer@gmail.com ~/research/realtime-weather-spain/update_weather.sh
+# qsub -q ceab -pe make 1 -l h_vmem=8G -m bea -M johnrbpalmer@gmail.com ~/research/realtime-weather-spain/update_weather.sh
