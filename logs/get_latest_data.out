@@ -1,0 +1,141 @@
+
+R version 4.1.0 (2021-05-18) -- "Camp Pontanezen"
+Copyright (C) 2021 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> # Title ####
+> # For downloading latest observation data from AEMET stations all over Spain. This needs to be run at least every 12 hours, but better to run it every 2 because of API limits, failures etc.
+> 
+> rm(list=ls())
+> 
+> ####Dependencies####
+> library(tidyverse)
+── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.2     ✔ readr     2.1.5
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ ggplot2   3.5.1     ✔ tibble    3.2.1
+✔ lubridate 1.9.2     ✔ tidyr     1.2.1
+✔ purrr     0.3.5     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+Warning messages:
+1: package ‘tidyr’ was built under R version 4.1.2 
+2: package ‘purrr’ was built under R version 4.1.2 
+> library(lubridate)
+> library(curl)
+Using libcurl 7.68.0 with GnuTLS/3.6.13
+
+Attaching package: ‘curl’
+
+The following object is masked from ‘package:readr’:
+
+    parse_date
+
+> library(jsonlite)
+
+Attaching package: ‘jsonlite’
+
+The following object is masked from ‘package:purrr’:
+
+    flatten
+
+Warning message:
+package ‘jsonlite’ was built under R version 4.1.2 
+> library(RSocrata)
+> library(data.table)
+
+Attaching package: ‘data.table’
+
+The following objects are masked from ‘package:lubridate’:
+
+    hour, isoweek, mday, minute, month, quarter, second, wday, week,
+    yday, year
+
+The following objects are masked from ‘package:dplyr’:
+
+    between, first, last
+
+The following object is masked from ‘package:purrr’:
+
+    transpose
+
+> 
+> source("auth/keys.R")
+> 
+> aemet_api_request = function(){
++   req = curl_fetch_memory(paste0('https://opendata.aemet.es/opendata/api/observacion/convencional/todas'), handle=h)
++   wurl = fromJSON(rawToChar(req$content))$datos
++   req = curl_fetch_memory(wurl)
++   this_string = rawToChar(req$content)
++   Encoding(this_string) = "latin1"
++   wdia  = fromJSON(this_string) %>% as_tibble() %>% dplyr::select(fint, idema, tamax, tamin, hr)
++   return(wdia)
++ }
+> 
+> get_data = function(){
++   tryCatch(
++     expr = {
++      return(aemet_api_request())
++     },
++     error = function(e){ 
++       # (Optional)
++       # Do this if an error is caught...
++       print(e)
++       # waiting and then...
++       Sys.sleep(50)
++       # try again:
++       wdia = get_data()
++       return(NULL)
++     },
++     warning = function(w){
++       print(w)
++       # (Optional)
++       # Do this if a warning is caught...
++       return(NULL)
++     },
++     finally = {
++       # (Optional)
++       # Do this at the end before quitting the tryCatch structure...
++     }
++   )
++ }
+> 
+> h <- new_handle()
+> handle_setheaders(h, 'api_key' = my_api_key)
+> 
+> wdia = get_data()
+> if(is.null(wdia)){
++   # we didn't get the data, wait in case the problem is that we are being throttled by the API...
++   Sys.sleep(60)
++   # then try again:
++   wdia = get_data()
++ }
+> 
+> latest_weather = wdia %>% pivot_longer(cols = c(tamax, tamin, hr), names_to = "measure") %>% filter(!is.na(value)) %>% mutate(fint = as_datetime(fint)) %>% as.data.table()
+> 
+> previous_weather = fread("data/spain_weather.csv.gz")
+> 
+> spain_weather = bind_rows(latest_weather, previous_weather) %>% distinct()
+> 
+> fwrite(as.data.table(spain_weather), "data/spain_weather.csv.gz")
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  2.502   0.684  17.651 
