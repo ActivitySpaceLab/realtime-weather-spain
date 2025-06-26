@@ -120,17 +120,23 @@ The following object is masked from ‘package:purrr’:
 > handle_setheaders(h, 'api_key' = my_api_key)
 > 
 > wdia = get_data()
-<simpleError in enc2utf8(url): argument is not a character vector>
+<simpleError in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): GnuTLS recv error (-110): The TLS connection was non-properly terminated.>
 > if(is.null(wdia)){
 +   # we didn't get the data, wait in case the problem is that we are being throttled by the API...
 +   Sys.sleep(60)
 +   # then try again:
 +   wdia = get_data()
 + }
-<simpleError in enc2utf8(url): argument is not a character vector>
 > 
 > latest_weather = wdia %>% pivot_longer(cols = c(tamax, tamin, hr), names_to = "measure") %>% filter(!is.na(value)) %>% mutate(fint = as_datetime(fint)) %>% as.data.table()
-Error in UseMethod("pivot_longer") : 
-  no applicable method for 'pivot_longer' applied to an object of class "NULL"
-Calls: %>% -> as.data.table -> mutate -> filter -> pivot_longer
-Execution halted
+> 
+> previous_weather = fread("data/spain_weather.csv.gz")
+> 
+> spain_weather = bind_rows(latest_weather, previous_weather) %>% distinct()
+> 
+> fwrite(as.data.table(spain_weather), "data/spain_weather.csv.gz")
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  4.274   1.108 131.074 
