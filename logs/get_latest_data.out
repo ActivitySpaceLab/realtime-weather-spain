@@ -138,4 +138,4 @@ The following object is masked from ‘package:purrr’:
 > 
 > proc.time()
    user  system elapsed 
-  2.557   0.647  14.059 
+  2.476   0.563  75.767 
