@@ -122,3 +122,25 @@ The following object is masked from ‘package:purrr’:
 > wdia = get_data()
 <simpleError in curl_fetch_memory(wurl): GnuTLS recv error (-110): The TLS connection was non-properly terminated.>
 <simpleError in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): GnuTLS recv error (-110): The TLS connection was non-properly terminated.>
+<simpleError in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): GnuTLS recv error (-110): The TLS connection was non-properly terminated.>
+<simpleError in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): GnuTLS recv error (-110): The TLS connection was non-properly terminated.>
+<simpleError in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): GnuTLS recv error (-110): The TLS connection was non-properly terminated.>
+> if(is.null(wdia)){
++   # we didn't get the data, wait in case the problem is that we are being throttled by the API...
++   Sys.sleep(60)
++   # then try again:
++   wdia = get_data()
++ }
+> 
+> latest_weather = wdia %>% pivot_longer(cols = c(tamax, tamin, hr), names_to = "measure") %>% filter(!is.na(value)) %>% mutate(fint = as_datetime(fint)) %>% as.data.table()
+> 
+> previous_weather = fread("data/spain_weather.csv.gz")
+> 
+> spain_weather = bind_rows(latest_weather, previous_weather) %>% distinct()
+> 
+> fwrite(as.data.table(spain_weather), "data/spain_weather.csv.gz")
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  3.012   0.554 351.125 
