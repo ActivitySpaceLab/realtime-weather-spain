@@ -82,13 +82,15 @@ lapply(seq(1, length(these_dates), chunksize), function(j){
     
   }))
   
-  stored_weather_daily = fread("data/proc/spain_weather_daily_historical.csv.gz")
+  stored_weather_daily = fread("data/spain_weather_daily_historical.csv.gz")
   
-  weather_daily = rbindlist(weather_daily, stored_weather_daily)
+#  stored_weather_daily =  stored_weather_daily %>% mutate(date = as_date(date), HRX = as.numeric(HRX), HRN = as.numeric(HRN))
+  
+  weather_daily = rbindlist(list(weather_daily, stored_weather_daily))
   
   print("writing chunk")
   
-  fwrite(weather_daily, "data/proc/spain_weather_daily_historical.csv.gz")
+  fwrite(weather_daily, "data/spain_weather_daily_historical.csv.gz")
   
   print("pausing 30 seconds")
   Sys.sleep(30)
