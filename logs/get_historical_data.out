@@ -164,9 +164,7 @@ package ‘jsonlite’ was built under R version 4.1.2
 +   
 +   print("Up to date - no historical data downloaded")
 + }
-[1] "Up to date - no historical data downloaded"
-> 
-> 
-> proc.time()
-   user  system elapsed 
-  3.413   2.020  14.991 
+[1] "2025-06-23"
+<simpleError in curl_fetch_memory(wurl): Timeout was reached: [opendata.aemet.es] Operation timed out after 10001 milliseconds with 0 out of 0 bytes received>
+Error: File 'data/proc/spain_weather_daily_historical.csv.gz' does not exist or is non-readable. getwd()=='/home/usuaris/j.palmer/research/realtime-weather-spain'
+Execution halted
