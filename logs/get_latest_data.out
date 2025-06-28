@@ -120,6 +120,7 @@ The following object is masked from ‘package:purrr’:
 > handle_setheaders(h, 'api_key' = my_api_key)
 > 
 > wdia = get_data()
+<simpleError in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): GnuTLS recv error (-110): The TLS connection was non-properly terminated.>
 > if(is.null(wdia)){
 +   # we didn't get the data, wait in case the problem is that we are being throttled by the API...
 +   Sys.sleep(60)
@@ -138,4 +139,4 @@ The following object is masked from ‘package:purrr’:
 > 
 > proc.time()
    user  system elapsed 
-  2.519   0.656   7.205 
+  4.261   0.929 120.510 
