@@ -166,8 +166,17 @@ package ‘jsonlite’ was built under R version 4.1.2
 +   
 +   print("Up to date - no historical data downloaded")
 + }
+[1] "2025-06-25"
+<simpleError in enc2utf8(url): argument is not a character vector>
 [1] "2025-06-24"
-Error in rbindlist(list(weather_daily, stored_weather_daily)) : 
-  Class attribute on column 1 of item 2 does not match with column 1 of item 1.
-Calls: lapply -> FUN -> rbindlist
-Execution halted
+<simpleError in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/valores/climatologicos/diarios/datos/fechaini/",     start_date, "T00%3A00%3A00UTC/fechafin/", start_date, "T23%3A59%3A59UTC/todasestaciones"),     handle = h): GnuTLS recv error (-110): The TLS connection was non-properly terminated.>
+[1] "writing chunk"
+[1] "pausing 30 seconds"
+[[1]]
+NULL
+
+> 
+> 
+> proc.time()
+   user  system elapsed 
+ 17.844   3.119 171.120 
