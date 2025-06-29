@@ -1,0 +1,4 @@
+Setting up DO droplet
+
+sudo apt install git-all
+sudo apt update && sudo apt install r-base
