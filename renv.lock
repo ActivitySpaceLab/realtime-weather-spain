@@ -1,6 +1,6 @@
 {
   "R": {
-    "Version": "4.4.2",
+    "Version": "4.4.1",
     "Repositories": [
       {
         "Name": "CRAN",
@@ -216,8 +216,7 @@
       "RemoteRepo": "RSocrata",
       "RemoteUsername": "Chicago",
       "RemoteRef": "HEAD",
-      "RemoteSha": "c25832cf8bccbfe44b045306d19d3b8950a84cdc",
-      "NeedsCompilation": "no"
+      "RemoteSha": "c25832cf8bccbfe44b045306d19d3b8950a84cdc"
     },
     "Rcpp": {
       "Package": "Rcpp",
