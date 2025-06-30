@@ -114,7 +114,6 @@ The following object is masked from ‘package:purrr’:
 > handle_setheaders(h, 'api_key' = my_api_key)
 > 
 > wdia = get_data()
-<curl_error_operation_timedout in curl_fetch_memory(wurl): Timeout was reached [opendata.aemet.es]: Failed to connect to opendata.aemet.es port 443 after 10002 ms: Timeout was reached>
 > if(is.null(wdia)){
 +   # we didn't get the data, wait in case the problem is that we are being throttled by the API...
 +   Sys.sleep(60)
@@ -133,4 +132,4 @@ The following object is masked from ‘package:purrr’:
 > 
 > proc.time()
    user  system elapsed 
-  3.695   0.373 148.251 
+  3.453   0.357   7.538 
