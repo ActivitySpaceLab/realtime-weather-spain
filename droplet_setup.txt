@@ -13,6 +13,16 @@ sudo apt install libharfbuzz-dev libfribidi-dev
 
 sudo apt install libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev
 
+sudo apt install libudunits2-dev
+
+sudo add-apt-repository ppa:ubuntugis/ppa
+sudo apt update && sudo apt upgrade
+sudo apt install libgdal-dev gdal-bin libproj15 libproj19 libproj-dev
+sudo add-apt-repository ppa:c2d4u.team/c2d4u4.0+
+sudo apt update && sudo apt install r-cran-sf
+
+sudo apt install libgdal-dev
+
 renv::restore(repos="https://cloud.r-project.org")
 
 

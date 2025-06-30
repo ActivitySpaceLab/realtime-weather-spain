@@ -62,6 +62,7 @@ if(is.null(wdia)){
   wdia = get_data()
 }
 
+if(!is.null(wdia) || nrow(wdia) > 0){
 latest_weather = wdia %>% pivot_longer(cols = c(tamax, tamin, hr), names_to = "measure") %>% filter(!is.na(value)) %>% mutate(fint = as_datetime(fint)) %>% as.data.table()
 
 previous_weather = fread("data/spain_weather.csv.gz")
@@ -69,4 +70,8 @@ previous_weather = fread("data/spain_weather.csv.gz")
 spain_weather = bind_rows(latest_weather, previous_weather) %>% distinct()
 
 fwrite(as.data.table(spain_weather), "data/spain_weather.csv.gz")
+} else{
+  
+  print("No new data. Nothing new saved")
+}
 
