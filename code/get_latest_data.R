@@ -10,6 +10,7 @@ library(curl)
 library(jsonlite)
 library(RSocrata)
 library(data.table)
+library(R.utils)
 
 source("auth/keys.R")
 
@@ -65,6 +66,9 @@ if(is.null(wdia)){
 if(!is.null(wdia) || nrow(wdia) > 0){
 latest_weather = wdia %>% pivot_longer(cols = c(tamax, tamin, hr), names_to = "measure") %>% filter(!is.na(value)) %>% mutate(fint = as_datetime(fint)) %>% as.data.table()
 
+print(paste0("downloaded ", nrow(latest_weather), " new rows of data."))
+
+
 previous_weather = fread("data/spain_weather.csv.gz")
 
 spain_weather = bind_rows(latest_weather, previous_weather) %>% distinct()
@@ -74,4 +78,5 @@ fwrite(as.data.table(spain_weather), "data/spain_weather.csv.gz")
   
   print("No new data. Nothing new saved")
 }
+
 
