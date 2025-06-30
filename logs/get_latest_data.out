@@ -114,22 +114,3 @@ The following object is masked from ‘package:purrr’:
 > handle_setheaders(h, 'api_key' = my_api_key)
 > 
 > wdia = get_data()
-> if(is.null(wdia)){
-+   # we didn't get the data, wait in case the problem is that we are being throttled by the API...
-+   Sys.sleep(60)
-+   # then try again:
-+   wdia = get_data()
-+ }
-> 
-> latest_weather = wdia %>% pivot_longer(cols = c(tamax, tamin, hr), names_to = "measure") %>% filter(!is.na(value)) %>% mutate(fint = as_datetime(fint)) %>% as.data.table()
-> 
-> previous_weather = fread("data/spain_weather.csv.gz")
-> 
-> spain_weather = bind_rows(latest_weather, previous_weather) %>% distinct()
-> 
-> fwrite(as.data.table(spain_weather), "data/spain_weather.csv.gz")
-> 
-> 
-> proc.time()
-   user  system elapsed 
-  3.688   0.347   7.048 
