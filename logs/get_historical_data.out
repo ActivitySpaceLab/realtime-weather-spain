@@ -1,13 +1,11 @@
 
-R version 4.1.0 (2021-05-18) -- "Camp Pontanezen"
-Copyright (C) 2021 The R Foundation for Statistical Computing
-Platform: x86_64-pc-linux-gnu (64-bit)
+R version 4.4.1 (2024-06-14) -- "Race for Your Life"
+Copyright (C) 2024 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
 Type 'license()' or 'licence()' for distribution details.
-
-  Natural language support but running in an English locale
 
 R is a collaborative project with many contributors.
 Type 'contributors()' for more information and
@@ -17,6 +15,7 @@ Type 'demo()' for some demos, 'help()' for on-line help, or
 'help.start()' for an HTML browser interface to help.
 Type 'q()' to quit R.
 
+- Project '~/research/realtime-weather-spain' loaded. [renv 1.1.4]
 > # Title ####
 > # For downloading and preparing historical weather data. 
 > 
@@ -25,18 +24,15 @@ Type 'q()' to quit R.
 > ####Dependencies####
 > library(tidyverse)
 ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-✔ dplyr     1.1.2     ✔ readr     2.1.5
+✔ dplyr     1.1.4     ✔ readr     2.1.5
 ✔ forcats   1.0.0     ✔ stringr   1.5.1
 ✔ ggplot2   3.5.1     ✔ tibble    3.2.1
-✔ lubridate 1.9.2     ✔ tidyr     1.2.1
-✔ purrr     0.3.5     
+✔ lubridate 1.9.4     ✔ tidyr     1.3.1
+✔ purrr     1.0.4     
 ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
 ✖ dplyr::filter() masks stats::filter()
 ✖ dplyr::lag()    masks stats::lag()
 ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
-Warning messages:
-1: package ‘tidyr’ was built under R version 4.1.2 
-2: package ‘purrr’ was built under R version 4.1.2 
 > library(lubridate)
 > library(data.table)
 
@@ -56,7 +52,7 @@ The following object is masked from ‘package:purrr’:
     transpose
 
 > library(curl)
-Using libcurl 7.68.0 with GnuTLS/3.6.13
+Using libcurl 8.9.1 with OpenSSL/3.3.1
 
 Attaching package: ‘curl’
 
@@ -72,8 +68,6 @@ The following object is masked from ‘package:purrr’:
 
     flatten
 
-Warning message:
-package ‘jsonlite’ was built under R version 4.1.2 
 > library(RSocrata)
 > 
 > source("auth/keys.R")
@@ -166,17 +160,5 @@ package ‘jsonlite’ was built under R version 4.1.2
 +   
 +   print("Up to date - no historical data downloaded")
 + }
-[1] "2025-06-25"
-<simpleError in enc2utf8(url): argument is not a character vector>
-[1] "2025-06-24"
-<simpleError in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/valores/climatologicos/diarios/datos/fechaini/",     start_date, "T00%3A00%3A00UTC/fechafin/", start_date, "T23%3A59%3A59UTC/todasestaciones"),     handle = h): GnuTLS recv error (-110): The TLS connection was non-properly terminated.>
+[1] "2025-06-26"
 [1] "writing chunk"
-[1] "pausing 30 seconds"
-[[1]]
-NULL
-
-> 
-> 
-> proc.time()
-   user  system elapsed 
- 17.844   3.119 171.120 
