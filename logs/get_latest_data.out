@@ -69,6 +69,46 @@ The following object is masked from ‘package:purrr’:
 
     transpose
 
+> library(R.utils)
+Loading required package: R.oo
+Loading required package: R.methodsS3
+R.methodsS3 v1.8.2 (2022-06-13 22:00:14 UTC) successfully loaded. See ?R.methodsS3 for help.
+R.oo v1.27.1 (2025-05-02 21:00:05 UTC) successfully loaded. See ?R.oo for help.
+
+Attaching package: ‘R.oo’
+
+The following object is masked from ‘package:R.methodsS3’:
+
+    throw
+
+The following objects are masked from ‘package:methods’:
+
+    getClasses, getMethods
+
+The following objects are masked from ‘package:base’:
+
+    attach, detach, load, save
+
+R.utils v2.13.0 (2025-02-24 21:20:02 UTC) successfully loaded. See ?R.utils for help.
+
+Attaching package: ‘R.utils’
+
+The following object is masked from ‘package:jsonlite’:
+
+    validate
+
+The following object is masked from ‘package:tidyr’:
+
+    extract
+
+The following object is masked from ‘package:utils’:
+
+    timestamp
+
+The following objects are masked from ‘package:base’:
+
+    cat, commandArgs, getOption, isOpen, nullfile, parse, use, warnings
+
 > 
 > source("auth/keys.R")
 > 
@@ -114,7 +154,6 @@ The following object is masked from ‘package:purrr’:
 > handle_setheaders(h, 'api_key' = my_api_key)
 > 
 > wdia = get_data()
-<curl_error_recv_error in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): Failure when receiving data from the peer [opendata.aemet.es]: Recv failure: Connection reset by peer>
 > if(is.null(wdia)){
 +   # we didn't get the data, wait in case the problem is that we are being throttled by the API...
 +   Sys.sleep(60)
@@ -122,15 +161,25 @@ The following object is masked from ‘package:purrr’:
 +   wdia = get_data()
 + }
 > 
-> latest_weather = wdia %>% pivot_longer(cols = c(tamax, tamin, hr), names_to = "measure") %>% filter(!is.na(value)) %>% mutate(fint = as_datetime(fint)) %>% as.data.table()
+> if(!is.null(wdia) || nrow(wdia) > 0){
++ latest_weather = wdia %>% pivot_longer(cols = c(tamax, tamin, hr), names_to = "measure") %>% filter(!is.na(value)) %>% mutate(fint = as_datetime(fint)) %>% as.data.table()
++ 
++ print(paste0("downloaded ", nrow(latest_weather), " new rows of data."))
++ 
++ 
++ previous_weather = fread("data/spain_weather.csv.gz")
++ 
++ spain_weather = bind_rows(latest_weather, previous_weather) %>% distinct()
++ 
++ fwrite(as.data.table(spain_weather), "data/spain_weather.csv.gz")
++ } else{
++   
++   print("No new data. Nothing new saved")
++ }
+[1] "downloaded 28020 new rows of data."
 > 
-> previous_weather = fread("data/spain_weather.csv.gz")
-> 
-> spain_weather = bind_rows(latest_weather, previous_weather) %>% distinct()
-> 
-> fwrite(as.data.table(spain_weather), "data/spain_weather.csv.gz")
 > 
 > 
 > proc.time()
    user  system elapsed 
-  4.612   0.400 147.463 
+  4.290   0.433  10.012 
