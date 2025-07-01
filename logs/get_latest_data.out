@@ -155,7 +155,6 @@ The following objects are masked from ‘package:base’:
 > 
 > wdia = get_data()
 <curl_error_recv_error in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): Failure when receiving data from the peer [opendata.aemet.es]: Recv failure: Connection reset by peer>
-<curl_error_recv_error in curl_fetch_memory(wurl): Failure when receiving data from the peer [opendata.aemet.es]: Recv failure: Connection reset by peer>
 <simpleError: lexical error: invalid bytes in UTF8 string.
                 {   "descripcion" : "L�mite de peticiones o caudal por
                      (right here) ------^
@@ -188,4 +187,4 @@ The following objects are masked from ‘package:base’:
 > 
 > proc.time()
    user  system elapsed 
-  5.465   0.488 267.215 
+  4.543   0.403 174.030 
