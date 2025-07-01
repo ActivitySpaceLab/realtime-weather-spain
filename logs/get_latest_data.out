@@ -154,13 +154,6 @@ The following objects are masked from ‘package:base’:
 > handle_setheaders(h, 'api_key' = my_api_key)
 > 
 > wdia = get_data()
-<curl_error_recv_error in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): Failure when receiving data from the peer [opendata.aemet.es]: Recv failure: Connection reset by peer>
-<curl_error_recv_error in curl_fetch_memory(wurl): Failure when receiving data from the peer [opendata.aemet.es]: Recv failure: Connection reset by peer>
-<curl_error_recv_error in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): Failure when receiving data from the peer [opendata.aemet.es]: Recv failure: Connection reset by peer>
-<simpleError: lexical error: invalid bytes in UTF8 string.
-                {   "descripcion" : "L�mite de peticiones o caudal por
-                     (right here) ------^
->
 > if(is.null(wdia)){
 +   # we didn't get the data, wait in case the problem is that we are being throttled by the API...
 +   Sys.sleep(60)
@@ -189,4 +182,4 @@ The following objects are masked from ‘package:base’:
 > 
 > proc.time()
    user  system elapsed 
-  4.115   0.396 328.559 
+  3.981   0.381   8.455 
