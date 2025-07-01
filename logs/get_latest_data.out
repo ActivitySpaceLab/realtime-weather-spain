@@ -154,6 +154,11 @@ The following objects are masked from ‘package:base’:
 > handle_setheaders(h, 'api_key' = my_api_key)
 > 
 > wdia = get_data()
+<curl_error_recv_error in curl_fetch_memory(wurl): Failure when receiving data from the peer [opendata.aemet.es]: Recv failure: Connection reset by peer>
+<simpleError: lexical error: invalid bytes in UTF8 string.
+                {   "descripcion" : "L�mite de peticiones o caudal por
+                     (right here) ------^
+>
 > if(is.null(wdia)){
 +   # we didn't get the data, wait in case the problem is that we are being throttled by the API...
 +   Sys.sleep(60)
@@ -176,10 +181,10 @@ The following objects are masked from ‘package:base’:
 +   
 +   print("No new data. Nothing new saved")
 + }
-[1] "downloaded 29866 new rows of data."
+[1] "downloaded 30469 new rows of data."
 > 
 > 
 > 
 > proc.time()
    user  system elapsed 
-  4.540   0.423   8.352 
+  4.977   0.419 171.715 
