@@ -161,6 +161,18 @@ The following objects are masked from â€˜package:baseâ€™:
 +   # then try again:
 +   wdia = get_data()
 + }
+<simpleError: lexical error: invalid bytes in UTF8 string.
+                {   "descripcion" : "Límite de peticiones o caudal por
+                     (right here) ------^
+>
+<simpleError: lexical error: invalid bytes in UTF8 string.
+                {   "descripcion" : "Límite de peticiones o caudal por
+                     (right here) ------^
+>
+<simpleError: lexical error: invalid bytes in UTF8 string.
+                {   "descripcion" : "Límite de peticiones o caudal por
+                     (right here) ------^
+>
 > 
 > if(!is.null(wdia) || nrow(wdia) > 0){
 + latest_weather = wdia %>% pivot_longer(cols = c(tamax, tamin, hr), names_to = "measure") %>% filter(!is.na(value)) %>% mutate(fint = as_datetime(fint)) %>% as.data.table()
@@ -177,10 +189,6 @@ The following objects are masked from â€˜package:baseâ€™:
 +   
 +   print("No new data. Nothing new saved")
 + }
-[1] "downloaded 27824 new rows of data."
-> 
-> 
-> 
-> proc.time()
-   user  system elapsed 
-  4.423   0.400 121.009 
+Error in if (!is.null(wdia) || nrow(wdia) > 0) { : 
+  missing value where TRUE/FALSE needed
+Execution halted
