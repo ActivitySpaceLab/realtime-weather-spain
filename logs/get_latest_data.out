@@ -154,8 +154,7 @@ The following objects are masked from ‘package:base’:
 > handle_setheaders(h, 'api_key' = my_api_key)
 > 
 > wdia = get_data()
-<curl_error_recv_error in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): Failure when receiving data from the peer [opendata.aemet.es]: Recv failure: Connection reset by peer>
-<curl_error_recv_error in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): Failure when receiving data from the peer [opendata.aemet.es]: Recv failure: Connection reset by peer>
+<curl_error_operation_timedout in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): Timeout was reached [opendata.aemet.es]: Operation too slow. Less than 1 bytes/sec transferred the last 600 seconds>
 > if(is.null(wdia)){
 +   # we didn't get the data, wait in case the problem is that we are being throttled by the API...
 +   Sys.sleep(60)
@@ -184,4 +183,4 @@ The following objects are masked from ‘package:base’:
 > 
 > proc.time()
    user  system elapsed 
-  5.325   0.503 189.789 
+  4.867   0.456 720.929 
