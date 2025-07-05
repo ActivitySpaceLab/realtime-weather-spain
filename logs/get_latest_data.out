@@ -154,3 +154,30 @@ The following objects are masked from ‘package:base’:
 > handle_setheaders(h, 'api_key' = my_api_key)
 > 
 > wdia = get_data()
+<curl_error_operation_timedout in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): Timeout was reached [opendata.aemet.es]: Failed to connect to opendata.aemet.es port 443 after 10002 ms: Timeout was reached>
+> if(is.null(wdia)){
++   # we didn't get the data, wait in case the problem is that we are being throttled by the API...
++   Sys.sleep(60)
++   # then try again:
++   wdia = get_data()
++ }
+<curl_error_operation_timedout in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): Timeout was reached [opendata.aemet.es]: Failed to connect to opendata.aemet.es port 443 after 10002 ms: Timeout was reached>
+> 
+> if(!is.null(wdia) || nrow(wdia) > 0){
++ latest_weather = wdia %>% pivot_longer(cols = c(tamax, tamin, hr), names_to = "measure") %>% filter(!is.na(value)) %>% mutate(fint = as_datetime(fint)) %>% as.data.table()
++ 
++ print(paste0("downloaded ", nrow(latest_weather), " new rows of data."))
++ 
++ 
++ previous_weather = fread("data/spain_weather.csv.gz")
++ 
++ spain_weather = bind_rows(latest_weather, previous_weather) %>% distinct()
++ 
++ fwrite(as.data.table(spain_weather), "data/spain_weather.csv.gz")
++ } else{
++   
++   print("No new data. Nothing new saved")
++ }
+Error in if (!is.null(wdia) || nrow(wdia) > 0) { : 
+  missing value where TRUE/FALSE needed
+Execution halted
