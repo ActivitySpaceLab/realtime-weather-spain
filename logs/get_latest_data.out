@@ -154,10 +154,6 @@ The following objects are masked from ‘package:base’:
 > handle_setheaders(h, 'api_key' = my_api_key)
 > 
 > wdia = get_data()
-<simpleError: lexical error: invalid char in json text.
-                                       <!DOCTYPE html><html><head><tit
-                     (right here) ------^
->
 > if(is.null(wdia)){
 +   # we didn't get the data, wait in case the problem is that we are being throttled by the API...
 +   Sys.sleep(60)
@@ -180,10 +176,10 @@ The following objects are masked from ‘package:base’:
 +   
 +   print("No new data. Nothing new saved")
 + }
-[1] "downloaded 28111 new rows of data."
+[1] "downloaded 30517 new rows of data."
 > 
 > 
 > 
 > proc.time()
    user  system elapsed 
-  5.171   0.485 169.131 
+  4.988   0.444   9.246 
