@@ -161,3 +161,26 @@ The following objects are masked from ‘package:base’:
 +   # then try again:
 +   wdia = get_data()
 + }
+> 
+> if(!is.null(wdia) || nrow(wdia) > 0){
++ latest_weather = wdia %>% pivot_longer(cols = c(tamax, tamin, hr), names_to = "measure") %>% filter(!is.na(value)) %>% mutate(fint = as_datetime(fint)) %>% as.data.table()
++ 
++ print(paste0("downloaded ", nrow(latest_weather), " new rows of data."))
++ 
++ 
++ previous_weather = fread("data/spain_weather.csv.gz")
++ 
++ spain_weather = bind_rows(latest_weather, previous_weather) %>% distinct()
++ 
++ fwrite(as.data.table(spain_weather), "data/spain_weather.csv.gz")
++ } else{
++   
++   print("No new data. Nothing new saved")
++ }
+[1] "downloaded 28064 new rows of data."
+> 
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  6.273   0.574 123.796 
