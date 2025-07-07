@@ -264,3 +264,22 @@ Execution halted
 t_data()
 + }
 <curl_error_recv_error in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): Failure when receiving data from the peer [opendata.aemet.es]: Recv failure: Connection reset by peer>
+> 
+> if(!is.null(wdia) || nrow(wdia) > 0){
++ latest_weather = wdia %>% pivot_longer(cols = c(tamax, tamin, hr), names_to = "measure") %>% filter(!is.na(value)) %>% mutate(fint = as_datetime(fint)) %>% as.data.table()
++ 
++ print(paste0("downloaded ", nrow(latest_weather), " new rows of data."))
++ 
++ 
++ previous_weather = fread("data/spain_weather.csv.gz")
++ 
++ spain_weather = bind_rows(latest_weather, previous_weather) %>% distinct()
++ 
++ fwrite(as.data.table(spain_weather), "data/spain_weather.csv.gz")
++ } else{
++   
++   print("No new data. Nothing new saved")
++ }
+Error in if (!is.null(wdia) || nrow(wdia) > 0) { : 
+  missing value where TRUE/FALSE needed
+Execution halted
