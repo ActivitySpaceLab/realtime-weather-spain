@@ -176,10 +176,10 @@ The following objects are masked from ‘package:base’:
 +   
 +   print("No new data. Nothing new saved")
 + }
-[1] "downloaded 28273 new rows of data."
+[1] "downloaded 30260 new rows of data."
 > 
 > 
 > 
 > proc.time()
    user  system elapsed 
-  6.419   0.584  29.020 
+  6.079   0.546  10.008 
