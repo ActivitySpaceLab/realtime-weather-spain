@@ -162,3 +162,12 @@ The following object is masked from ‘package:purrr’:
 + }
 [1] "2025-07-04"
 [1] "writing chunk"
+[1] "pausing 30 seconds"
+[[1]]
+NULL
+
+> 
+> 
+> proc.time()
+   user  system elapsed 
+ 16.860   1.282  49.383 
