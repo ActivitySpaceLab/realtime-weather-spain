@@ -154,12 +154,17 @@ The following objects are masked from ‘package:base’:
 > handle_setheaders(h, 'api_key' = my_api_key)
 > 
 > wdia = get_data()
+<curl_error_operation_timedout in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): Timeout was reached [opendata.aemet.es]: Failed to connect to opendata.aemet.es port 443 after 10002 ms: Timeout was reached>
+<curl_error_operation_timedout in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): Timeout was reached [opendata.aemet.es]: Failed to connect to opendata.aemet.es port 443 after 10002 ms: Timeout was reached>
+<curl_error_couldnt_connect in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): Could not connect to server [opendata.aemet.es]: Failed to connect to opendata.aemet.es port 443 after 1597 ms: Could not connect to server>
+<curl_error_couldnt_connect in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): Could not connect to server [opendata.aemet.es]: Failed to connect to opendata.aemet.es port 443 after 4223 ms: Could not connect to server>
+<curl_error_operation_timedout in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): Timeout was reached [opendata.aemet.es]: Failed to connect to opendata.aemet.es port 443 after 10002 ms: Timeout was reached>
+<curl_error_operation_timedout in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): Timeout was reached [opendata.aemet.es]: Failed to connect to opendata.aemet.es port 443 after 10002 ms: Timeout was reached>
+<curl_error_operation_timedout in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): Timeout was reached [opendata.aemet.es]: Failed to connect to opendata.aemet.es port 443 after 10002 ms: Timeout was reached>
 <curl_error_operation_timedout in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): Timeout was reached [opendata.aemet.es]: Failed to connect to opendata.aemet.es port 443 after 10003 ms: Timeout was reached>
-<curl_error_operation_timedout in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): Timeout was reached [opendata.aemet.es]: Failed to connect to opendata.aemet.es port 443 after 10002 ms: Timeout was reached>
-<curl_error_operation_timedout in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): Timeout was reached [opendata.aemet.es]: Failed to connect to opendata.aemet.es port 443 after 10002 ms: Timeout was reached>
-<curl_error_operation_timedout in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): Timeout was reached [opendata.aemet.es]: Failed to connect to opendata.aemet.es port 443 after 10002 ms: Timeout was reached>
-<curl_error_operation_timedout in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): Timeout was reached [opendata.aemet.es]: Failed to connect to opendata.aemet.es port 443 after 10002 ms: Timeout was reached>
 <curl_error_recv_error in curl_fetch_memory(wurl): Failure when receiving data from the peer [opendata.aemet.es]: Recv failure: Connection reset by peer>
+<curl_error_recv_error in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): Failure when receiving data from the peer [opendata.aemet.es]: Recv failure: Connection reset by peer>
+<curl_error_recv_error in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): Failure when receiving data from the peer [opendata.aemet.es]: Recv failure: Connection reset by peer>
 > if(is.null(wdia)){
 +   # we didn't get the data, wait in case the problem is that we are being throttled by the API...
 +   Sys.sleep(60)
@@ -182,10 +187,10 @@ The following objects are masked from ‘package:base’:
 +   
 +   print("No new data. Nothing new saved")
 + }
-[1] "downloaded 28327 new rows of data."
+[1] "downloaded 30800 new rows of data."
 > 
 > 
 > 
 > proc.time()
    user  system elapsed 
-  6.958   0.647 442.188 
+  6.885   0.604 702.224 
