@@ -155,6 +155,7 @@ The following objects are masked from ‘package:base’:
 > 
 > wdia = get_data()
 <curl_error_recv_error in curl_fetch_memory(wurl): Failure when receiving data from the peer [opendata.aemet.es]: OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0>
+<curl_error_recv_error in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): Failure when receiving data from the peer [opendata.aemet.es]: OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0>
 > if(is.null(wdia)){
 +   # we didn't get the data, wait in case the problem is that we are being throttled by the API...
 +   Sys.sleep(60)
@@ -177,10 +178,10 @@ The following objects are masked from ‘package:base’:
 +   
 +   print("No new data. Nothing new saved")
 + }
-[1] "downloaded 30694 new rows of data."
+[1] "downloaded 28222 new rows of data."
 > 
 > 
 > 
 > proc.time()
    user  system elapsed 
-  6.892   0.564 148.272 
+  6.698   0.546 189.268 
