@@ -182,4 +182,4 @@ The following objects are masked from ‘package:base’:
 > 
 > proc.time()
    user  system elapsed 
-  6.337   0.566  10.694 
+  5.351   0.489   8.284 
