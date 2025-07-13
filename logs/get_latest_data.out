@@ -154,6 +154,7 @@ The following objects are masked from ‘package:base’:
 > handle_setheaders(h, 'api_key' = my_api_key)
 > 
 > wdia = get_data()
+<simpleError in enc2utf8(url): argument is not a character vector>
 > if(is.null(wdia)){
 +   # we didn't get the data, wait in case the problem is that we are being throttled by the API...
 +   Sys.sleep(60)
@@ -176,10 +177,10 @@ The following objects are masked from ‘package:base’:
 +   
 +   print("No new data. Nothing new saved")
 + }
-[1] "downloaded 27907 new rows of data."
+[1] "downloaded 30251 new rows of data."
 > 
 > 
 > 
 > proc.time()
    user  system elapsed 
-  5.320   0.512   9.248 
+  5.456   0.531 136.358 
