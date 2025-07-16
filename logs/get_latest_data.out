@@ -176,7 +176,7 @@ The following objects are masked from ‘package:base’:
 +   
 +   print("No new data. Nothing new saved")
 + }
-[1] "downloaded 30036 new rows of data."
+[1] "downloaded 30651 new rows of data."
 Error in readBin(inn, what = raw(0L), size = 1L, n = BFR.SIZE) : 
   error reading from the connection
 Calls: fread -> <Anonymous> -> decompressFile.default -> readBin
