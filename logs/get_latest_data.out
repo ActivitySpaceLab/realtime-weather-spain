@@ -154,10 +154,6 @@ The following objects are masked from ‘package:base’:
 > handle_setheaders(h, 'api_key' = my_api_key)
 > 
 > wdia = get_data()
-<simpleError: lexical error: invalid char in json text.
-                                       <!DOCTYPE html><html><head><tit
-                     (right here) ------^
->
 > if(is.null(wdia)){
 +   # we didn't get the data, wait in case the problem is that we are being throttled by the API...
 +   Sys.sleep(60)
@@ -180,7 +176,7 @@ The following objects are masked from ‘package:base’:
 +   
 +   print("No new data. Nothing new saved")
 + }
-[1] "downloaded 28147 new rows of data."
+[1] "downloaded 30551 new rows of data."
 Error in readBin(inn, what = raw(0L), size = 1L, n = BFR.SIZE) : 
   error reading from the connection
 Calls: fread -> <Anonymous> -> decompressFile.default -> readBin
