@@ -154,3 +154,33 @@ The following objects are masked from ‘package:base’:
 > handle_setheaders(h, 'api_key' = my_api_key)
 > 
 > wdia = get_data()
+> if(is.null(wdia)){
++   # we didn't get the data, wait in case the problem is that we are being throttled by the API...
++   Sys.sleep(60)
++   # then try again:
++   wdia = get_data()
++ }
+> 
+> if(!is.null(wdia) || nrow(wdia) > 0){
++ latest_weather = wdia %>% pivot_longer(cols = c(tamax, tamin, hr), names_to = "measure") %>% filter(!is.na(value)) %>% mutate(fint = as_datetime(fint)) %>% as.data.table()
++ 
++ print(paste0("downloaded ", nrow(latest_weather), " new rows of data."))
++ 
++ 
++ previous_weather = fread("data/spain_weather.csv.gz")
++ 
++ spain_weather = bind_rows(latest_weather, previous_weather) %>% distinct()
++ 
++ fwrite(as.data.table(spain_weather), "data/spain_weather.csv.gz")
++ } else{
++   
++   print("No new data. Nothing new saved")
++ }
+[1] "downloaded 28251 new rows of data."
+Error in readBin(inn, what = raw(0L), size = 1L, n = BFR.SIZE) : 
+  error reading from the connection
+Calls: fread -> <Anonymous> -> decompressFile.default -> readBin
+In addition: Warning message:
+In readBin(inn, what = raw(0L), size = 1L, n = BFR.SIZE) :
+  invalid or incomplete compressed data
+Execution halted
