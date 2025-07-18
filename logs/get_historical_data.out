@@ -160,14 +160,9 @@ The following object is masked from ‘package:purrr’:
 +   
 +   print("Up to date - no historical data downloaded")
 + }
-[1] "2025-07-14"
-[1] "writing chunk"
-[1] "pausing 30 seconds"
-[[1]]
-NULL
-
+[1] "Up to date - no historical data downloaded"
 > 
 > 
 > proc.time()
    user  system elapsed 
- 16.477   1.207  49.888 
+  5.755   0.741   7.031 
