@@ -1,3 +1,25 @@
+# get_historical_data.R
+# ----------------------
+# Purpose: Download and update historical daily weather data for Spain from the AEMET OpenData API.
+#
+# This script checks for missing dates in the local historical weather dataset and downloads any missing data in chunks.
+# Data is fetched from the AEMET API, processed, and appended to the local CSV file.
+#
+# Main Steps:
+#   1. Load dependencies and API key.
+#   2. Determine which dates are missing from the local dataset.
+#   3. Download missing data in chunks, handling API rate limits and errors.
+#   4. Append new data to the historical dataset.
+#
+# Usage:
+#   - Requires a valid API key in 'auth/keys.R' as 'my_api_key'.
+#   - Run as an R script. Output is written to 'data/spain_weather_daily_historical.csv.gz'.
+#
+# Dependencies: tidyverse, lubridate, data.table, curl, jsonlite, RSocrata
+#
+# Author: [Your Name]
+# Date: [YYYY-MM-DD]
+
 # Title ####
 # For downloading and preparing historical weather data. 
 
@@ -14,21 +36,29 @@ library(RSocrata)
 source("auth/keys.R")
 
 # SETTING DATES ####
+# Set the start date for historical data collection
 start_date = as_date("2013-07-01")
 
+# Set up curl handle with API key for authentication
 h <- new_handle()
 handle_setheaders(h, 'api_key' = my_api_key)
 
+# Generate sequence of all dates to check (from start_date to 4 days before today)
 all_dates = seq.Date(from = start_date, to=today()-4, by = "day")
 
+# Load existing historical weather data
 stored_weather_daily = fread("data/spain_weather_daily_historical.csv.gz")
 
+# Reverse date order (latest first)
 all_dates = all_dates[length(all_dates):1]
 
+# Identify which dates are missing from the local dataset
 these_dates = all_dates[which(!all_dates %in% unique(stored_weather_daily$date))]
 
+# Set chunk size for API requests (to avoid rate limits)
 chunksize = 20
 
+# Main download loop: only run if there are missing dates
 if(length(these_dates) > 0){
 
 lapply(seq(1, length(these_dates), chunksize), function(j){
