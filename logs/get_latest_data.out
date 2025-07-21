@@ -176,8 +176,10 @@ The following objects are masked from ‘package:base’:
 +   
 +   print("No new data. Nothing new saved")
 + }
-[1] "downloaded 27940 new rows of data."
-Error in fread("data/spain_weather.csv.gz") : 
-  File 'data/spain_weather.csv.gz' does not exist or is non-readable. getwd()=='/home/palmer/research/realtime-weather-spain'
-Calls: fread -> stopf -> raise_condition -> signal
-Execution halted
+[1] "downloaded 29494 new rows of data."
+> 
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  4.646   0.431   8.109 
