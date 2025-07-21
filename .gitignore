@@ -6,3 +6,8 @@
 
 # ignoring auth folder to avoid checking API keys into repo
 auth
+
+
+# ignoring data files that are large and not needed in the repo
+data/spain_weather.csv.gz
+data/spain_weather_daily_historical.csv.gz
