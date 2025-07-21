@@ -161,7 +161,6 @@ The following objects are masked from ‘package:base’:
 +   # then try again:
 +   wdia = get_data()
 + }
-<curl_error_recv_error in curl_fetch_memory(paste0("https://opendata.aemet.es/opendata/api/observacion/convencional/todas"),     handle = h): Failure when receiving data from the peer [opendata.aemet.es]: OpenSSL SSL_read: SSL_ERROR_SYSCALL, errno 0>
 > 
 > if(!is.null(wdia) || nrow(wdia) > 0){
 + latest_weather = wdia %>% pivot_longer(cols = c(tamax, tamin, hr), names_to = "measure") %>% filter(!is.na(value)) %>% mutate(fint = as_datetime(fint)) %>% as.data.table()
@@ -178,6 +177,10 @@ The following objects are masked from ‘package:base’:
 +   
 +   print("No new data. Nothing new saved")
 + }
-Error in if (!is.null(wdia) || nrow(wdia) > 0) { : 
-  missing value where TRUE/FALSE needed
-Execution halted
+[1] "downloaded 30466 new rows of data."
+> 
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  5.471   0.469 142.338 
