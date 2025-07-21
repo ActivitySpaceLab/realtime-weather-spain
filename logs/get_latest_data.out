@@ -177,10 +177,7 @@ The following objects are masked from ‘package:base’:
 +   print("No new data. Nothing new saved")
 + }
 [1] "downloaded 27940 new rows of data."
-Error in readBin(inn, what = raw(0L), size = 1L, n = BFR.SIZE) : 
-  error reading from the connection
-Calls: fread -> <Anonymous> -> decompressFile.default -> readBin
-In addition: Warning message:
-In readBin(inn, what = raw(0L), size = 1L, n = BFR.SIZE) :
-  invalid or incomplete compressed data
+Error in fread("data/spain_weather.csv.gz") : 
+  File 'data/spain_weather.csv.gz' does not exist or is non-readable. getwd()=='/home/palmer/research/realtime-weather-spain'
+Calls: fread -> stopf -> raise_condition -> signal
 Execution halted
