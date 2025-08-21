@@ -1,9 +1,13 @@
-# get_historical_data.R
+# get_historical_data_expanded.R
 # ----------------------
 # Purpose: Download and update historical daily weather data for Spain from the AEMET OpenData API.
 #
 # This script checks for missing dates in the local historical weather dataset and downloads any missing data in chunks.
 # Data is fetched from the AEMET API, processed, and appended to the local CSV file.
+#
+# Concurrency Control:
+#   - Set PREVENT_CONCURRENT_RUNS = TRUE to enable lockfile-based run prevention
+#   - Set PREVENT_CONCURRENT_RUNS = FALSE (default) to allow multiple concurrent runs
 #
 # Main Steps:
 #   1. Load dependencies and API key.
@@ -33,14 +37,24 @@ library(curl)
 library(jsonlite)
 library(RSocrata)
 
-# Lockfile management
-lockfile <- "tmp/get_historical_data_expanded.lock"
-if (file.exists(lockfile)) {
-  cat("Another run is in progress. Exiting.\n"); quit(save="no", status=0)
+# If you want to prevent concurrent runs of this script, set PREVENT_CONCURRENT_RUNS to TRUE.
+PREVENT_CONCURRENT_RUNS = FALSE
+
+if(PREVENT_CONCURRENT_RUNS) {
+  # Prevent concurrent runs by creating a lockfile
+  # Lockfile management
+  lockfile <- "tmp/get_historical_data_expanded.lock"
+  # Check if lockfile exists
+  if (file.exists(lockfile)) {
+    cat("Another run is in progress. Exiting.\n")
+    quit(save = "no", status = 0)
+  }
+  # Create a temporary directory and lockfile
+  dir.create("tmp", showWarnings = FALSE)
+  file.create(lockfile)
+  # Ensure lockfile is removed on exit
+  on.exit(unlink(lockfile), add = TRUE)
 }
-dir.create("tmp", showWarnings = FALSE)
-file.create(lockfile)
-on.exit(unlink(lockfile), add = TRUE)
 
 # Load API keys
 source("auth/keys.R")

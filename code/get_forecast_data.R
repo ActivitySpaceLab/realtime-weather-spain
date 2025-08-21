@@ -7,6 +7,10 @@
 # This script fetches daily weather forecasts for Spanish municipalities from the AEMET API.
 # Forecasts include temperature, humidity, precipitation, and wind data for 7 days ahead.
 #
+# Concurrency Control:
+#   - Set PREVENT_CONCURRENT_RUNS = TRUE to enable lockfile-based run prevention
+#   - Set PREVENT_CONCURRENT_RUNS = FALSE (default) to allow multiple concurrent runs
+#
 # Output: Municipal-level daily forecasts with variables compatible with observation data
 #
 # Core Variables:
@@ -38,14 +42,24 @@ library(curl)
 library(jsonlite)
 library(data.table)
 
-# Lockfile management
-lockfile <- "tmp/get_forecast_data.lock"
-if (file.exists(lockfile)) {
-  cat("Another forecast run is in progress. Exiting.\n"); quit(save="no", status=0)
+# If you want to prevent concurrent runs of this script, set PREVENT_CONCURRENT_RUNS to TRUE.
+PREVENT_CONCURRENT_RUNS = FALSE
+
+if(PREVENT_CONCURRENT_RUNS) {
+  # Prevent concurrent runs by creating a lockfile
+  # Lockfile management
+  lockfile <- "tmp/get_forecast_data.lock"
+  # Check if lockfile exists
+  if (file.exists(lockfile)) {
+    cat("Another forecast run is in progress. Exiting.\n")
+    quit(save = "no", status = 0)
+  }
+  # Create a temporary directory and lockfile
+  dir.create("tmp", showWarnings = FALSE)
+  file.create(lockfile)
+  # Ensure lockfile is removed on exit
+  on.exit(unlink(lockfile), add = TRUE)
 }
-dir.create("tmp", showWarnings = FALSE)
-file.create(lockfile)
-on.exit(unlink(lockfile), add = TRUE)
 
 # Load API keys
 source("auth/keys.R")
