@@ -4,12 +4,16 @@
 # -------------------
 # Purpose: Download 7-day municipal weather forecasts from AEMET OpenData API
 #
-# This script fetches daily weather forecasts for Spanish municipalities from the AEMET API.
-# Forecasts include temperature, humidity, precipitation, and wind data for 7 days ahead.
+# This script fetches daily weather forecasts for ALL Spanish municipalities using codes
+# from data/municipalities.csv.gz. The CUMUN variable contains 8,129 municipality codes.
 #
 # Concurrency Control:
 #   - Set PREVENT_CONCURRENT_RUNS = TRUE to enable lockfile-based run prevention
 #   - Set PREVENT_CONCURRENT_RUNS = FALSE (default) to allow multiple concurrent runs
+#
+# Scale Control:
+#   - Set SAMPLE_SIZE to a number (e.g., 50) for testing with a subset of municipalities
+#   - Set SAMPLE_SIZE = NULL to process all 8,129 municipalities (will take several hours)
 #
 # Output: Municipal-level daily forecasts with variables compatible with observation data
 #
@@ -187,19 +191,25 @@ get_municipal_forecast = function(municipio_code) {
 }
 
 # Get list of major Spanish municipalities (sample for testing)
-# In production, you would want a complete list of all municipalities
-# These municipality codes have been verified to work with the AEMET API
-major_municipalities = c(
-  "28079",  # Madrid ✓
-  "08019",  # Barcelona ✓ 
-  "41091",  # Sevilla ✓
-  "46250",  # Valencia ✓
-  "29067",  # Málaga ✓
-  "48020",  # Bilbao ✓
-  "50297",  # Zaragoza ✓
-  "30030",  # Murcia ✓
-  "07040"   # Palma ✓
-)
+# Load complete municipality list from data file
+cat("Loading municipality codes from data/municipalities.csv.gz...\n")
+municipalities_data = fread("data/municipalities.csv.gz")
+cat("Loaded", nrow(municipalities_data), "municipalities\n")
+
+# Extract all municipality codes
+all_municipality_codes = municipalities_data$CUMUN
+
+# For testing/development, set SAMPLE_SIZE to limit municipalities
+# Set to NULL or a large number for full collection
+SAMPLE_SIZE = 50  # Change this to NULL for all municipalities
+
+if(!is.null(SAMPLE_SIZE) && SAMPLE_SIZE < length(all_municipality_codes)) {
+  major_municipalities = as.character(head(all_municipality_codes, SAMPLE_SIZE))
+  cat("Using sample of", SAMPLE_SIZE, "municipalities for testing\n")
+} else {
+  major_municipalities = as.character(all_municipality_codes)
+  cat("Using all", length(major_municipalities), "municipalities\n")
+}
 
 cat("Starting forecast data collection for", length(major_municipalities), "municipalities...\n")
 
@@ -207,9 +217,14 @@ cat("Starting forecast data collection for", length(major_municipalities), "muni
 all_forecasts = list()
 successful_count = 0
 
-for(i in 1:length(major_municipalities)) {
+for(i in seq_along(major_municipalities)) {
   municipio = major_municipalities[i]
-  cat("Processing municipality", i, "of", length(major_municipalities), ":", municipio, "\n")
+  
+  # Progress tracking
+  if(i %% 10 == 0 || i == 1) {
+    cat("Processing municipality", i, "of", length(major_municipalities), 
+        sprintf("(%.1f%% complete)", i/length(major_municipalities)*100), "\n")
+  }
   
   forecast_data = get_municipal_forecast(municipio)
   
@@ -218,8 +233,8 @@ for(i in 1:length(major_municipalities)) {
     successful_count = successful_count + 1
   }
   
-  # Be polite to the API
-  Sys.sleep(1)
+  # Be polite to the API - longer delay for large scale collection
+  Sys.sleep(if(length(major_municipalities) > 100) 2 else 1)
 }
 
 if(length(all_forecasts) > 0) {

@@ -8,6 +8,7 @@
 library(curl)
 library(jsonlite)
 library(dplyr)
+library(data.table)
 
 # Load API key
 source("auth/keys.R")
@@ -160,19 +161,27 @@ get_municipality_forecast_simple = function(municipio_code, municipio_name = NUL
   return(NULL)
 }
 
-# Test with verified working municipality codes
-working_municipalities = list(
-  "Madrid" = "28079",
-  "Barcelona" = "08019", 
-  "Valencia" = "46250",
-  "Sevilla" = "41091",
-  "Bilbao" = "48020",
-  "Zaragoza" = "50297",
-  "Malaga" = "29067",
-  "Murcia" = "30030",
-  "Las Palmas" = "35016",
-  "Palma" = "07040"
-)
+# Load complete municipality list from data file
+cat("Loading municipality codes from data/municipalities.csv.gz...\n")
+municipalities_data = fread("data/municipalities.csv.gz")
+cat("Loaded", nrow(municipalities_data), "municipalities\n")
+
+# For testing/development, set SAMPLE_SIZE to limit municipalities  
+# Set to NULL for all municipalities, or a number for testing
+SAMPLE_SIZE = 20  # Change this to NULL for all municipalities
+
+if(!is.null(SAMPLE_SIZE) && SAMPLE_SIZE < nrow(municipalities_data)) {
+  working_municipalities = head(municipalities_data$CUMUN, SAMPLE_SIZE)
+  names(working_municipalities) = head(municipalities_data$NAMEUNIT, SAMPLE_SIZE)
+  cat("Using sample of", SAMPLE_SIZE, "municipalities for testing\n")
+} else {
+  working_municipalities = municipalities_data$CUMUN
+  names(working_municipalities) = municipalities_data$NAMEUNIT
+  cat("Using all", length(working_municipalities), "municipalities\n")
+}
+
+# Convert to character for API calls
+working_municipalities = as.character(working_municipalities)
 
 cat("Collecting forecasts for", length(working_municipalities), "municipalities...\n\n")
 
