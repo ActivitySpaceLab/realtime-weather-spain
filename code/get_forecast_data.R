@@ -68,9 +68,15 @@ if(PREVENT_CONCURRENT_RUNS) {
 # Load API keys
 source("auth/keys.R")
 
-# Create curl handle
+# Create curl handle with initial API key
 h <- new_handle()
 handle_setheaders(h, 'api_key' = my_api_key)
+
+# Function to update curl handle with current API key
+update_curl_handle <- function() {
+  current_key <- get_current_api_key()
+  handle_setheaders(h, 'api_key' = current_key)
+}
 
 # Function to debug API response for a municipality
 debug_municipal_forecast = function(municipio_code) {
@@ -115,7 +121,7 @@ debug_municipal_forecast = function(municipio_code) {
   cat("=== END DEBUG ===\n\n")
 }
 
-# Function to get municipal forecast data
+# Function to get municipal forecast data with API key rotation
 get_municipal_forecast = function(municipio_code) {
   tryCatch({
     # Request forecast data with timeout and retry logic
@@ -132,6 +138,32 @@ get_municipal_forecast = function(municipio_code) {
     
     if(req$status_code == 0) {
       return(NULL)  # Server connectivity issue
+    }
+    
+    # Handle rate limiting with API key rotation
+    if(req$status_code == 429) {
+      cat("Rate limit hit for municipality", municipio_code, "- rotating API key\n")
+      rotate_api_key()
+      update_curl_handle()
+      
+      # Wait a bit longer before retrying
+      Sys.sleep(5)
+      
+      # Retry with new key
+      req = tryCatch({
+        curl_fetch_memory(paste0('https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/diaria/', municipio_code), handle=h)
+      }, error = function(e) {
+        if(grepl("Server returned nothing|Empty reply", e$message)) {
+          cat("Server connectivity issue for municipality", municipio_code, "after key rotation - skipping\n")
+          return(list(status_code = 0, content = raw(0)))
+        } else {
+          stop(e)
+        }
+      })
+      
+      if(req$status_code == 0) {
+        return(NULL)
+      }
     }
     
     if(req$status_code != 200) {

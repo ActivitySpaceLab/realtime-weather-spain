@@ -13,6 +13,16 @@ library(data.table)
 # Load API key
 source("auth/keys.R")
 
+# Create curl handle with initial API key
+h <- new_handle()
+handle_setheaders(h, 'api_key' = my_api_key)
+
+# Function to update curl handle with current API key
+update_curl_handle <- function() {
+  current_key <- get_current_api_key()
+  handle_setheaders(h, 'api_key' = current_key)
+}
+
 # If you want to prevent concurrent runs of this script, set PREVENT_CONCURRENT_RUNS to TRUE.
 PREVENT_CONCURRENT_RUNS = FALSE
 
@@ -27,10 +37,6 @@ if(PREVENT_CONCURRENT_RUNS) {
   file.create(lockfile)
   on.exit(unlink(lockfile), add = TRUE)
 }
-
-# Create curl handle
-h <- new_handle()
-handle_setheaders(h, 'api_key' = my_api_key)
 
 cat("=== AEMET FORECAST DATA COLLECTION (SIMPLE) ===\n")
 cat("Started at:", format(Sys.time(), "%Y-%m-%d %H:%M:%S"), "\n\n")
@@ -47,6 +53,19 @@ get_municipality_forecast_simple = function(municipio_code, municipio_name = NUL
         paste0('https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/diaria/', municipio_code), 
         handle = h
       )
+      
+      if(req$status_code == 429) {
+        cat(" Rate limit hit - rotating API key...")
+        rotate_api_key()
+        update_curl_handle()
+        Sys.sleep(5)  # Wait longer after key rotation
+        
+        # Retry with new key
+        req = curl_fetch_memory(
+          paste0('https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/diaria/', municipio_code), 
+          handle = h
+        )
+      }
       
       if(req$status_code != 200) {
         cat(" API request failed (status", req$status_code, ")\n")
