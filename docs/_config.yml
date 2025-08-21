@@ -1,0 +1,41 @@
+# Site settings for GitHub Pages
+title: "Real-time Weather Spain"
+description: "Comprehensive weather data collection and analysis for Spain using AEMET OpenData API"
+url: "https://activityspacelab.github.io"
+baseurl: "/realtime-weather-spain"
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+theme: minima
+
+# Navigation
+nav_links:
+  - title: "Home"
+    url: "/"
+  - title: "API Analysis"
+    url: "/api-analysis"
+  - title: "Data Structure"
+    url: "/data-structure"
+  - title: "Scripts Documentation"
+    url: "/scripts"
+  - title: "Variable Reference"
+    url: "/variables"
+
+# Collections
+collections:
+  analysis:
+    output: true
+    permalink: /:collection/:name/
+
+# Plugins
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+
+# Exclude files
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - vendor/

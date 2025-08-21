@@ -1,9 +1,18 @@
-# get_latest_data.R
+# get_latest_data_expanded.R
 # ----------------------
 # Purpose: Download and update the latest observation data from AEMET stations across Spain.
 #
-# This script fetches the most recent weather observations from the AEMET OpenData API and appends them to the local dataset.
-# It is recommended to run this script every 2 hours (at least every 12 hours) to minimize data loss due to API limits or failures.
+# This script fetches weather observations from the AEMET OpenData API using the 7 core variables
+# that are compatible across current observations, historical data, and forecast endpoints.
+#
+# Core Variables (Safe for all endpoints):
+#   - ta: Air temperature (°C)
+#   - tamax: Maximum temperature (°C) 
+#   - tamin: Minimum temperature (°C)
+#   - hr: Relative humidity (%)
+#   - prec: Precipitation (mm)
+#   - vv: Wind speed (km/h)
+#   - p: Atmospheric pressure (hPa)
 #
 # Main Steps:
 #   1. Load dependencies and API key.
@@ -13,37 +22,50 @@
 #
 # Usage:
 #   - Requires a valid API key in 'auth/keys.R' as 'my_api_key'.
-#   - Run as an R script. Output is written to 'data/spain_weather.csv.gz'.
+#   - Run as an R script. Output is written to 'data/spain_weather_expanded.csv.gz'.
 #
-# Dependencies: tidyverse, lubridate, curl, jsonlite, RSocrata, data.table, R.utils
+# Dependencies: tidyverse, lubridate, curl, jsonlite, data.table, R.utils
 #
 # Author: John Palmer
-# Date: 2025-07-21
+# Date: 2025-08-20 (Updated for 7-variable expansion)
 
 # Title ####
 # For downloading latest observation data from AEMET stations all over Spain. This needs to be run at least every 12 hours, but better to run it every 2 because of API limits, failures etc.
 
 rm(list=ls())
 
-####Dependencies####
+
+# Dependencies ####
 library(tidyverse)
 library(lubridate)
 library(curl)
 library(jsonlite)
-library(RSocrata)
 library(data.table)
 library(R.utils)
 
+# Lockfile management
+lockfile <- "tmp/get_latest_data_expanded.lock"
+if (file.exists(lockfile)) {
+  cat("Another run is in progress. Exiting.\n"); quit(save="no", status=0)
+}
+dir.create("tmp", showWarnings = FALSE)
+file.create(lockfile)
+on.exit(unlink(lockfile), add = TRUE)
+
+# Load API keys
 source("auth/keys.R")
 
 # aemet_api_request: Fetches latest weather observation data from AEMET API and returns as tibble.
+# Only selects the 7 core variables that are compatible across all endpoints.
 aemet_api_request = function(){
   req = curl_fetch_memory(paste0('https://opendata.aemet.es/opendata/api/observacion/convencional/todas'), handle=h)
   wurl = fromJSON(rawToChar(req$content))$datos
   req = curl_fetch_memory(wurl)
   this_string = rawToChar(req$content)
   Encoding(this_string) = "latin1"
-  wdia  = fromJSON(this_string) %>% as_tibble() %>% dplyr::select(fint, idema, tamax, tamin, hr)
+  wdia  = fromJSON(this_string) %>% 
+    as_tibble() %>%
+    dplyr::select(fint, idema, ta, tamax, tamin, hr, prec, vv, p)
   return(wdia)
 }
 
@@ -88,22 +110,37 @@ if(is.null(wdia)){
 }
 
 # If data was successfully retrieved, process and save
-if(!is.null(wdia) || nrow(wdia) > 0){
-  # Reshape and clean latest weather data
-  latest_weather = wdia %>% pivot_longer(cols = c(tamax, tamin, hr), names_to = "measure") %>% filter(!is.na(value)) %>% mutate(fint = as_datetime(fint)) %>% as.data.table()
+if(!is.null(wdia) && nrow(wdia) > 0){
+  # Reshape and clean latest weather data - use all 7 core variables
+  latest_weather = wdia %>% 
+    pivot_longer(cols = c(ta, tamax, tamin, hr, prec, vv, p), 
+                 names_to = "measure", 
+                 values_to = "value") %>% 
+    filter(!is.na(value)) %>% 
+    mutate(fint = as_datetime(fint)) %>% 
+    as.data.table()
 
-  print(paste0("downloaded ", nrow(latest_weather), " new rows of data."))
+  print(paste0("Downloaded ", nrow(latest_weather), " new rows of data with 7 core variables."))
 
   # Load previous weather data
-  previous_weather = fread("data/spain_weather.csv.gz")
+  if(file.exists("data/spain_weather_expanded.csv.gz")) {
+    previous_weather = fread("data/spain_weather_expanded.csv.gz")
+  } else {
+    previous_weather = data.table()
+    print("Creating new expanded weather dataset file.")
+  }
 
   # Combine and deduplicate
-  spain_weather = bind_rows(latest_weather, previous_weather) %>% distinct()
+  spain_weather = bind_rows(latest_weather, previous_weather) %>% 
+    distinct() %>%
+    arrange(desc(fint))
 
   # Save updated data
-  fwrite(as.data.table(spain_weather), "data/spain_weather.csv.gz")
+  fwrite(as.data.table(spain_weather), "data/spain_weather_expanded.csv.gz")
+  
+  print(paste0("Total dataset now contains ", nrow(spain_weather), " rows."))
 } else{
-  print("No new data. Nothing new saved")
+  print("No new data retrieved. Nothing saved.")
 }
 
 

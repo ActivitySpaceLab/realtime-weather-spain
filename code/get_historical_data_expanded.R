@@ -33,6 +33,16 @@ library(curl)
 library(jsonlite)
 library(RSocrata)
 
+# Lockfile management
+lockfile <- "tmp/get_historical_data_expanded.lock"
+if (file.exists(lockfile)) {
+  cat("Another run is in progress. Exiting.\n"); quit(save="no", status=0)
+}
+dir.create("tmp", showWarnings = FALSE)
+file.create(lockfile)
+on.exit(unlink(lockfile), add = TRUE)
+
+# Load API keys
 source("auth/keys.R")
 
 # SETTING DATES ####
@@ -112,7 +122,7 @@ lapply(seq(1, length(these_dates), chunksize), function(j){
     
   }))
   
-  stored_weather_daily = fread("data/spain_weather_daily_historical.csv.gz")
+  stored_weather_daily = fread("data/spain_weather_daily_historical_expanded.csv.gz")
   
 #  stored_weather_daily =  stored_weather_daily %>% mutate(date = as_date(date), HRX = as.numeric(HRX), HRN = as.numeric(HRN))
   
@@ -120,7 +130,7 @@ lapply(seq(1, length(these_dates), chunksize), function(j){
   
   print("writing chunk")
   
-  fwrite(weather_daily, "data/spain_weather_daily_historical.csv.gz")
+  fwrite(weather_daily, "data/spain_weather_daily_historical_expanded.csv.gz")
   
   print("pausing 30 seconds")
   Sys.sleep(30)
