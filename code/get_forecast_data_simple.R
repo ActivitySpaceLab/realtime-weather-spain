@@ -168,7 +168,7 @@ cat("Loaded", nrow(municipalities_data), "municipalities\n")
 
 # For testing/development, set SAMPLE_SIZE to limit municipalities  
 # Set to NULL for all municipalities, or a number for testing
-SAMPLE_SIZE = 20  # Change this to NULL for all municipalities
+SAMPLE_SIZE = 5  # Change this to NULL for all municipalities
 
 if(!is.null(SAMPLE_SIZE) && SAMPLE_SIZE < nrow(municipalities_data)) {
   working_municipalities = head(municipalities_data$CUMUN, SAMPLE_SIZE)

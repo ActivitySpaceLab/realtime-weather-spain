@@ -72,11 +72,67 @@ source("auth/keys.R")
 h <- new_handle()
 handle_setheaders(h, 'api_key' = my_api_key)
 
-# Function to get municipal forecast data
-get_municipal_forecast = function(municipio_code) {
+# Function to debug API response for a municipality
+debug_municipal_forecast = function(municipio_code) {
+  cat("=== DEBUG: Municipality", municipio_code, "===\n")
+  
   tryCatch({
     # Request forecast data
     req = curl_fetch_memory(paste0('https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/diaria/', municipio_code), handle=h)
+    cat("Status code:", req$status_code, "\n")
+    
+    if(req$status_code != 200) {
+      cat("Request failed, raw response:", rawToChar(req$content), "\n")
+      return(NULL)
+    }
+    
+    response_content = fromJSON(rawToChar(req$content))
+    cat("Response keys:", names(response_content), "\n")
+    
+    if("datos" %in% names(response_content)) {
+      # Get actual forecast data
+      req2 = curl_fetch_memory(response_content$datos)
+      cat("Data URL status:", req2$status_code, "\n")
+      
+      if(req2$status_code == 200) {
+        this_string = rawToChar(req2$content)
+        Encoding(this_string) = "latin1"
+        cat("Raw data length:", nchar(this_string), "characters\n")
+        cat("First 200 chars:", substr(this_string, 1, 200), "\n")
+        
+        forecast_data = fromJSON(this_string, flatten = FALSE)
+        cat("Parsed data keys:", names(forecast_data), "\n")
+        
+        if("prediccion.dia" %in% names(forecast_data)) {
+          cat("Prediction days structure:", str(forecast_data$prediccion.dia), "\n")
+        }
+      }
+    }
+  }, error = function(e) {
+    cat("DEBUG ERROR:", e$message, "\n")
+    cat("This suggests API connectivity issues, not code problems.\n")
+  })
+  cat("=== END DEBUG ===\n\n")
+}
+
+# Function to get municipal forecast data
+get_municipal_forecast = function(municipio_code) {
+  tryCatch({
+    # Request forecast data with timeout and retry logic
+    req = tryCatch({
+      curl_fetch_memory(paste0('https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/diaria/', municipio_code), handle=h)
+    }, error = function(e) {
+      if(grepl("Server returned nothing|Empty reply", e$message)) {
+        cat("Server connectivity issue for municipality", municipio_code, "- skipping\n")
+        return(list(status_code = 0, content = raw(0)))  # Return empty but valid structure
+      } else {
+        stop(e)  # Re-throw other errors
+      }
+    })
+    
+    if(req$status_code == 0) {
+      return(NULL)  # Server connectivity issue
+    }
     
     if(req$status_code != 200) {
       cat("API request failed for municipality", municipio_code, "with status:", req$status_code, "\n")
@@ -102,15 +158,26 @@ get_municipal_forecast = function(municipio_code) {
     Encoding(this_string) = "latin1"  # Handle encoding
     forecast_data = fromJSON(this_string, flatten = FALSE)  # Changed to FALSE for proper structure
     
-    # Extract municipality info
-    municipio_nombre = forecast_data$nombre
-    municipio_provincia = forecast_data$provincia
-    elaborado = forecast_data$elaborado
+    # Debug: Check if we have the expected structure
+    if(is.null(forecast_data) || length(forecast_data) == 0) {
+      cat("Empty forecast data for municipality", municipio_code, "\n")
+      return(NULL)
+    }
     
-    # Extract daily forecasts
+    # Extract municipality info with safe checking
+    municipio_nombre = if("nombre" %in% names(forecast_data) && length(forecast_data$nombre) > 0) forecast_data$nombre else "Unknown"
+    municipio_provincia = if("provincia" %in% names(forecast_data) && length(forecast_data$provincia) > 0) forecast_data$provincia else "Unknown"
+    elaborado = if("elaborado" %in% names(forecast_data) && length(forecast_data$elaborado) > 0) forecast_data$elaborado else NA
+    
+    # Extract daily forecasts with safe checking
+    if(!"prediccion.dia" %in% names(forecast_data) || length(forecast_data$prediccion.dia) == 0) {
+      cat("No prediction days found for municipality", municipio_code, "\n")
+      return(NULL)
+    }
+    
     pred_days = forecast_data$prediccion.dia[[1]]
     
-    if(nrow(pred_days) == 0) {
+    if(is.null(pred_days) || nrow(pred_days) == 0) {
       cat("No forecast days for municipality", municipio_code, "\n")
       return(NULL)
     }
@@ -200,6 +267,7 @@ all_municipality_codes = municipalities_data$CUMUN
 # For testing/development, set SAMPLE_SIZE to limit municipalities
 # Start with a small number to test API rate limits
 SAMPLE_SIZE = 5  # Change this to NULL for all municipalities
+DEBUG_MODE = FALSE  # Set to TRUE to see detailed API responses
 
 if(!is.null(SAMPLE_SIZE) && SAMPLE_SIZE < length(all_municipality_codes)) {
   major_municipalities = as.character(head(all_municipality_codes, SAMPLE_SIZE))
@@ -210,6 +278,17 @@ if(!is.null(SAMPLE_SIZE) && SAMPLE_SIZE < length(all_municipality_codes)) {
 }
 
 cat("Starting forecast data collection for", length(major_municipalities), "municipalities...\n")
+
+# Debug mode: analyze first municipality in detail
+if(DEBUG_MODE && length(major_municipalities) > 0) {
+  cat("\n=== RUNNING IN DEBUG MODE ===\n")
+  cat("Testing with Madrid (28079) as a known-good municipality code...\n")
+  debug_municipal_forecast("28079")
+  cat("Now testing with first municipality from our sample:", major_municipalities[1], "\n")
+  debug_municipal_forecast(major_municipalities[1])
+  cat("Debug complete. Set DEBUG_MODE = FALSE to run normal collection.\n")
+  quit(save = "no", status = 0)
+}
 
 # Collect forecasts for all municipalities
 all_forecasts = list()
