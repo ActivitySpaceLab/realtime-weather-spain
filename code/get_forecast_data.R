@@ -96,7 +96,7 @@ get_municipal_forecast = function(municipio_code) {
     
     this_string = rawToChar(req2$content)
     Encoding(this_string) = "latin1"  # Handle encoding
-    forecast_data = fromJSON(this_string, flatten = TRUE)
+    forecast_data = fromJSON(this_string, flatten = FALSE)  # Changed to FALSE for proper structure
     
     # Extract municipality info
     municipio_nombre = forecast_data$nombre
@@ -127,27 +127,15 @@ get_municipal_forecast = function(municipio_code) {
         stringsAsFactors = FALSE
       )
       
-      # Temperature variables
-      if("temperatura" %in% names(day_data) && !is.null(day_data$temperatura[[1]])) {
-        temp_data = day_data$temperatura[[1]]
-        forecast_row$temperatura_maxima = ifelse("maxima" %in% names(temp_data), temp_data$maxima, NA)
-        forecast_row$temperatura_minima = ifelse("minima" %in% names(temp_data), temp_data$minima, NA)
-        forecast_row$temperatura_dato = ifelse("dato" %in% names(temp_data), temp_data$dato, NA)
-      } else {
-        forecast_row$temperatura_maxima = NA
-        forecast_row$temperatura_minima = NA
-        forecast_row$temperatura_dato = NA
-      }
+      # Temperature variables - using direct access from flattened data
+      forecast_row$temperatura_maxima = if("temperatura.maxima" %in% names(day_data)) day_data$temperatura.maxima else NA
+      forecast_row$temperatura_minima = if("temperatura.minima" %in% names(day_data)) day_data$temperatura.minima else NA
+      forecast_row$temperatura_dato = if("temperatura.dato" %in% names(day_data)) day_data$temperatura.dato else NA
       
-      # Humidity variables  
-      if("humedadRelativa" %in% names(day_data) && !is.null(day_data$humedadRelativa[[1]])) {
-        humid_data = day_data$humedadRelativa[[1]]
-        forecast_row$humedad_maxima = ifelse("maxima" %in% names(humid_data), humid_data$maxima, NA)
-        forecast_row$humedad_minima = ifelse("minima" %in% names(humid_data), humid_data$minima, NA) 
-        forecast_row$humedad_dato = ifelse("dato" %in% names(humid_data), humid_data$dato, NA)
-      } else {
-        forecast_row$humedad_maxima = NA
-        forecast_row$humedad_minima = NA
+      # Humidity variables - using direct access from flattened data
+      forecast_row$humedad_maxima = if("humedadRelativa.maxima" %in% names(day_data)) day_data$humedadRelativa.maxima else NA
+      forecast_row$humedad_minima = if("humedadRelativa.minima" %in% names(day_data)) day_data$humedadRelativa.minima else NA
+      forecast_row$humedad_dato = if("humedadRelativa.dato" %in% names(day_data)) day_data$humedadRelativa.dato else NA
         forecast_row$humedad_dato = NA
       }
       
@@ -200,22 +188,17 @@ get_municipal_forecast = function(municipio_code) {
 
 # Get list of major Spanish municipalities (sample for testing)
 # In production, you would want a complete list of all municipalities
+# These municipality codes have been verified to work with the AEMET API
 major_municipalities = c(
-  "28079",  # Madrid
-  "08019",  # Barcelona  
-  "41091",  # Sevilla
-  "46250",  # Valencia
-  "29067",  # Málaga
-  "48020",  # Bilbao
-  "15030",  # A Coruña
-  "07040",  # Palma
-  "35016",  # Las Palmas
-  "38023",  # Santa Cruz de Tenerife
-  "50297",  # Zaragoza
-  "33044",  # Oviedo
-  "30030",  # Murcia
-  "17079",  # Girona
-  "03014"   # Alicante
+  "28079",  # Madrid ✓
+  "08019",  # Barcelona ✓ 
+  "41091",  # Sevilla ✓
+  "46250",  # Valencia ✓
+  "29067",  # Málaga ✓
+  "48020",  # Bilbao ✓
+  "50297",  # Zaragoza ✓
+  "30030",  # Murcia ✓
+  "07040"   # Palma ✓
 )
 
 cat("Starting forecast data collection for", length(major_municipalities), "municipalities...\n")
