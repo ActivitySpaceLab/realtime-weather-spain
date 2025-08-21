@@ -46,42 +46,49 @@ get_municipality_forecast_simple = function(municipio_code, municipio_name = NUL
   
   for(attempt in 1:max_retries) {
     tryCatch({
-      cat("Processing", municipio_code, "...")
+      cat("Processing", municipio_code, "- Attempt", attempt, "\n")
+      
+      # Create the full URL
+      forecast_url = paste0('https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/diaria/', municipio_code)
+      cat("Requesting URL:", forecast_url, "\n")
+      cat("Using API key:", names(get_current_api_key()), "\n")
       
       # Request forecast data URL
-      req = curl_fetch_memory(
-        paste0('https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/diaria/', municipio_code), 
-        handle = h
-      )
+      req = curl_fetch_memory(forecast_url, handle = h)
+      cat("API request status:", req$status_code, "\n")
       
       if(req$status_code == 429) {
-        cat(" Rate limit hit - rotating API key...")
+        cat("Rate limit hit - rotating API key...\n")
         rotate_api_key()
         update_curl_handle()
         Sys.sleep(5)  # Wait longer after key rotation
         
         # Retry with new key
-        req = curl_fetch_memory(
-          paste0('https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/diaria/', municipio_code), 
-          handle = h
-        )
+        req = curl_fetch_memory(forecast_url, handle = h)
+        cat("Retry request status:", req$status_code, "\n")
       }
       
       if(req$status_code != 200) {
-        cat(" API request failed (status", req$status_code, ")\n")
-        return(NULL)
+        cat("API request failed with status", req$status_code, "\n")
+        if(req$status_code == 401) cat("Authentication failed - check API key\n")
+        if(req$status_code == 404) cat("Municipality code not found\n")
+        if(req$status_code >= 500) cat("Server error - AEMET API may be down\n")
+        next  # Try next attempt
       }
       
       # Parse response to get data URL
       response_content = fromJSON(rawToChar(req$content))
+      cat("Response content names:", paste(names(response_content), collapse = ", "), "\n")
       
       if(!"datos" %in% names(response_content)) {
-        cat(" No data URL in response\n")
-        return(NULL)
+        cat("No data URL in response\n")
+        next  # Try next attempt
       }
       
+      cat("Data URL received, fetching forecast data...\n")
+      
       # Fetch actual forecast data
-      Sys.sleep(0.5)  # Small delay to avoid rate limiting
+      Sys.sleep(2)  # Longer delay to avoid rate limiting
       req2 = curl_fetch_memory(response_content$datos)
       
       if(req2$status_code != 200) {
@@ -107,59 +114,98 @@ get_municipality_forecast_simple = function(municipio_code, municipio_name = NUL
         return(NULL)
       }
       
-      # Process forecast days into simple format
+      # Process forecast days into simple format using working approach
       forecast_rows = list()
       
       for(i in seq_along(pred_days)) {
         day = pred_days[[i]]
         
-        # Basic row structure
-        row = data.frame(
-          municipio_id = municipio_code,
-          municipio_nombre = municipio_nombre,
-          provincia = provincia,
-          elaborado = elaborado,
-          fecha = day$fecha,
+        # Use your working pattern for extracting values
+        tryCatch({
+          # Temperature - use your working approach
+          temp_max = if("temperatura" %in% names(day) && !is.null(day$temperatura) && "maxima" %in% names(day$temperatura)) {
+            val = day$temperatura$maxima
+            if(length(val) == 1) as.numeric(val) else NA
+          } else NA
           
-          # Temperature - extract from potentially nested structure
-          temp_max = if("temperatura" %in% names(day)) {
-            temp = day$temperatura
-            if(is.list(temp) && "maxima" %in% names(temp)) temp$maxima else NA
-          } else NA,
+          temp_min = if("temperatura" %in% names(day) && !is.null(day$temperatura) && "minima" %in% names(day$temperatura)) {
+            val = day$temperatura$minima
+            if(length(val) == 1) as.numeric(val) else NA
+          } else NA
           
-          temp_min = if("temperatura" %in% names(day)) {
-            temp = day$temperatura
-            if(is.list(temp) && "minima" %in% names(temp)) temp$minima else NA
-          } else NA,
+          # Temperature mean like your code
+          temp_mean = if(!is.na(temp_max) && !is.na(temp_min)) {
+            mean(c(temp_max, temp_min), na.rm = TRUE)
+          } else NA
           
-          # Humidity - extract from potentially nested structure
-          humid_max = if("humedadRelativa" %in% names(day)) {
-            humid = day$humedadRelativa
-            if(is.list(humid) && "maxima" %in% names(humid)) humid$maxima else NA
-          } else NA,
+          # Wind velocity - using your unlist/lapply approach
+          wind_speed = if("viento" %in% names(day) && length(day$viento) > 0) {
+            tryCatch({
+              velocidades = unlist(lapply(day$viento, function(x) {
+                if(is.list(x) && "velocidad" %in% names(x)) x$velocidad else NA
+              }))
+              mean(velocidades, na.rm = TRUE)
+            }, error = function(e) NA)
+          } else NA
           
-          humid_min = if("humedadRelativa" %in% names(day)) {
-            humid = day$humedadRelativa
-            if(is.list(humid) && "minima" %in% names(humid)) humid$minima else NA
-          } else NA,
+          # Humidity - simplified extraction
+          humid_max = if("humedadRelativa" %in% names(day) && !is.null(day$humedadRelativa) && "maxima" %in% names(day$humedadRelativa)) {
+            val = day$humedadRelativa$maxima
+            if(length(val) == 1) as.numeric(val) else NA
+          } else NA
           
-          # Precipitation probability - simplified
-          precip_prob = if("probPrecipitacion" %in% names(day)) {
-            prob = day$probPrecipitacion
-            if(is.list(prob) && length(prob) > 0) {
-              # Take first non-null value or maximum
-              values = sapply(prob, function(x) if("value" %in% names(x)) x$value else x)
-              max(as.numeric(values), na.rm = TRUE)
-            } else as.numeric(prob)
-          } else NA,
+          humid_min = if("humedadRelativa" %in% names(day) && !is.null(day$humedadRelativa) && "minima" %in% names(day$humedadRelativa)) {
+            val = day$humedadRelativa$minima
+            if(length(val) == 1) as.numeric(val) else NA
+          } else NA
           
-          # UV index
-          uv_max = if("uvMax" %in% names(day)) as.numeric(day$uvMax) else NA,
+          # Basic row structure
+          row = data.frame(
+            municipio_id = municipio_code,
+            municipio_nombre = municipio_nombre,
+            provincia = provincia,
+            elaborado = elaborado,
+            fecha = as.Date(day$fecha),
+            temp_max = temp_max,
+            temp_min = temp_min,
+            temp_mean = temp_mean,
+            humid_max = humid_max,
+            humid_min = humid_min,
+            wind_speed = wind_speed,
+            
+            # Precipitation probability - simplified
+            precip_prob = if("probPrecipitacion" %in% names(day)) {
+              prob = day$probPrecipitacion
+              if(is.list(prob) && length(prob) > 0) {
+                # Take first available probability value
+                first_prob = prob[[1]]
+                if(is.numeric(first_prob)) first_prob else NA
+              } else if(is.numeric(prob)) prob else NA
+            } else NA,
+            
+            # UV index
+            uv_max = if("uvMax" %in% names(day)) as.numeric(day$uvMax) else NA,
+            
+            stringsAsFactors = FALSE
+          )
           
-          stringsAsFactors = FALSE
-        )
-        
-        forecast_rows[[i]] = row
+          forecast_rows[[i]] = row
+          
+        }, error = function(e) {
+          cat("Error processing day", i, ":", e$message, "\n")
+          # Create minimal row on error
+          forecast_rows[[i]] = data.frame(
+            municipio_id = municipio_code,
+            municipio_nombre = municipio_nombre,
+            provincia = provincia,
+            elaborado = elaborado,
+            fecha = if(exists("day") && "fecha" %in% names(day)) as.Date(day$fecha) else as.Date(Sys.time()),
+            temp_max = NA, temp_min = NA, temp_mean = NA,
+            humid_max = NA, humid_min = NA, wind_speed = NA,
+            precip_prob = NA, uv_max = NA,
+            stringsAsFactors = FALSE
+          )
+        })
       }
       
       # Combine all days for this municipality
@@ -185,9 +231,9 @@ cat("Loading municipality codes from data/municipalities.csv.gz...\n")
 municipalities_data = fread("data/municipalities.csv.gz")
 cat("Loaded", nrow(municipalities_data), "municipalities\n")
 
-# For testing/development, set SAMPLE_SIZE to limit municipalities  
-# Set to NULL for all municipalities, or a number for testing
-SAMPLE_SIZE = 5  # Change this to NULL for all municipalities
+# For testing/development, set SAMPLE_SIZE to limit municipalities
+# Start with a very small number due to API rate limiting issues
+SAMPLE_SIZE = 2  # Start even smaller due to server issues
 
 if(!is.null(SAMPLE_SIZE) && SAMPLE_SIZE < nrow(municipalities_data)) {
   working_municipalities = head(municipalities_data$CUMUN, SAMPLE_SIZE)
@@ -199,26 +245,44 @@ if(!is.null(SAMPLE_SIZE) && SAMPLE_SIZE < nrow(municipalities_data)) {
   cat("Using all", length(working_municipalities), "municipalities\n")
 }
 
-# Convert to character for API calls
+# Convert to character for API calls (preserve names)
+municipality_names = names(working_municipalities)
 working_municipalities = as.character(working_municipalities)
+names(working_municipalities) = municipality_names
 
-cat("Collecting forecasts for", length(working_municipalities), "municipalities...\n\n")
+cat("Collecting forecasts for", length(working_municipalities), "municipalities...\n")
+cat("First municipality codes:", head(working_municipalities, 2), "\n")
+cat("First municipality names:", head(names(working_municipalities), 2), "\n\n")
 
 # Collect forecasts
 all_forecasts = list()
 successful_collections = 0
+municipality_count = 0
 
 for(city in names(working_municipalities)) {
+  municipality_count = municipality_count + 1
   code = working_municipalities[[city]]
+  
+  cat("Processing municipality", municipality_count, "of", length(working_municipalities), "\n")
+  cat("Municipality:", city, "(", code, ")\n")
+  
+  # Add much longer delay between municipalities (except for first)
+  if (municipality_count > 1) {
+    cat("Waiting 10 seconds before next municipality...\n")
+    Sys.sleep(10)
+  }
+  
   forecast_data = get_municipality_forecast_simple(code, city)
   
   if(!is.null(forecast_data)) {
     all_forecasts[[code]] = forecast_data
     successful_collections = successful_collections + 1
+    cat("✓ Success - collected forecast data\n")
+  } else {
+    cat("✗ Failed to collect data\n")
   }
   
-  # Rate limiting between requests
-  Sys.sleep(1)
+  cat("\n")
 }
 
 cat("\n=== FORECAST COLLECTION SUMMARY ===\n")
