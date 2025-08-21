@@ -25,12 +25,20 @@ Analysis of AEMET OpenData API endpoints reveals three distinct data streams wit
 These 7 variables exist across both current and historical endpoints and are recommended for expansion:
 
 1. `hr` - Relative humidity (%)
-2. `p` - Atmospheric pressure (hPa) 
+2. `pres` - Atmospheric pressure (hPa) 
 3. `prec` - Precipitation (mm)
 4. `ta` - Air temperature (°C)
 5. `tamax` - Maximum temperature (°C)
 6. `tamin` - Minimum temperature (°C)
 7. `vv` - Wind speed (km/h)
+
+### Important Note on Pressure Variables
+
+AEMET provides two pressure variables:
+- `p` - Available only in historical data (appears to be mostly empty in current observations)
+- `pres` - Available in both current and historical data (contains actual pressure measurements)
+
+**Recommendation**: Use `pres` for pressure measurements as it contains actual data across both endpoints.
 
 **Date of Analysis**: August 20, 2025
 

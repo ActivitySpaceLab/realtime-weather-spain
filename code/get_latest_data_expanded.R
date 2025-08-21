@@ -12,7 +12,7 @@
 #   - hr: Relative humidity (%)
 #   - prec: Precipitation (mm)
 #   - vv: Wind speed (km/h)
-#   - p: Atmospheric pressure (hPa)
+#   - pres: Atmospheric pressure (hPa)
 #
 # Main Steps:
 #   1. Load dependencies and API key.
@@ -43,14 +43,28 @@ library(jsonlite)
 library(data.table)
 library(R.utils)
 
-# Lockfile management
-lockfile <- "tmp/get_latest_data_expanded.lock"
-if (file.exists(lockfile)) {
-  cat("Another run is in progress. Exiting.\n"); quit(save="no", status=0)
+# Set locale to UTF-8 for proper encoding handling
+Sys.setlocale("LC_ALL", "en_US.UTF-8")
+
+# If you want to prevent concurrent runs of this script, set PREVENT_CONCURRENT_RUNS to TRUE.
+PREVENT_CONCURRENT_RUNS = FALSE
+
+if(PREVENT_CONCURRENT_RUNS) {
+  # Prevent concurrent runs by creating a lockfile
+  # Lockfile management
+  lockfile <- "tmp/get_latest_data_expanded.lock"
+  # Check if lockfile exists
+  if (file.exists(lockfile)) {
+    cat("Another run is in progress. Exiting.\n")
+    quit(save = "no", status = 0)
+  }
+  # Create a temporary directory and lockfile
+  dir.create("tmp", showWarnings = FALSE)
+  file.create(lockfile)
+  # Ensure lockfile is removed on exit
+  on.exit(unlink(lockfile), add = TRUE)
 }
-dir.create("tmp", showWarnings = FALSE)
-file.create(lockfile)
-on.exit(unlink(lockfile), add = TRUE)
+
 
 # Load API keys
 source("auth/keys.R")
@@ -65,7 +79,7 @@ aemet_api_request = function(){
   Encoding(this_string) = "latin1"
   wdia  = fromJSON(this_string) %>% 
     as_tibble() %>%
-    dplyr::select(fint, idema, ta, tamax, tamin, hr, prec, vv, p)
+    dplyr::select(fint, idema, ta, tamax, tamin, hr, prec, vv, pres)
   return(wdia)
 }
 
@@ -98,6 +112,12 @@ get_data = function(){
   )
 }
 
+# Ensure data directory exists
+if(!dir.exists("data")) {
+  dir.create("data")
+}
+
+# Set up cURL handle with API key
 h <- new_handle()
 handle_setheaders(h, 'api_key' = my_api_key)
 
@@ -113,7 +133,7 @@ if(is.null(wdia)){
 if(!is.null(wdia) && nrow(wdia) > 0){
   # Reshape and clean latest weather data - use all 7 core variables
   latest_weather = wdia %>% 
-    pivot_longer(cols = c(ta, tamax, tamin, hr, prec, vv, p), 
+    pivot_longer(cols = c(ta, tamax, tamin, hr, prec, vv, pres), 
                  names_to = "measure", 
                  values_to = "value") %>% 
     filter(!is.na(value)) %>% 

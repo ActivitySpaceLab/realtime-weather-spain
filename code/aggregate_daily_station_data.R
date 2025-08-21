@@ -77,7 +77,7 @@ aggregate_hourly_to_daily = function(hourly_dt) {
     group_by(date, idema, measure) %>%
     summarise(
       value = case_when(
-        measure %in% c("ta", "hr", "vv", "p") ~ mean(value, na.rm = TRUE),      # Mean for these variables
+        measure %in% c("ta", "hr", "vv", "pres") ~ mean(value, na.rm = TRUE),   # Mean for these variables
         measure %in% c("tamax") ~ max(value, na.rm = TRUE),                     # Maximum for tamax
         measure %in% c("tamin") ~ min(value, na.rm = TRUE),                     # Minimum for tamin  
         measure %in% c("prec") ~ sum(value, na.rm = TRUE),                      # Sum for precipitation

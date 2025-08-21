@@ -18,7 +18,40 @@ cat("=== AEMET API VARIABLE COMPATIBILITY ANALYSIS ===\n\n")
 # Variables from current observations (from inspect_variables.R output)
 current_vars = c(
   "alt", "bh", "ca", "cel", "dd", "ddd", "dp", "dv", "dvi", "dvm", "fxi", "fxv", 
-  "hr", "lat", "lon", "p", "pmax", "pmin", "prec", "pres", "qp", "r", "rachamax", 
+  "hr", "lat", "lon", "pmax", "pmin", "prec", "pres", "qp", "r", "rachamax", 
+  "ri", "rs", "sol", "ta", "tamax", "tamin", "ts", "tuv", "v", "vis", "vmax", 
+  "vv", "w", "ww", "xi", "za"
+)
+
+# Variables from historical daily data (from test_historical_variables.R output)
+historical_vars = c(
+  "alt", "bh", "ca", "cel", "dir", "dv", "hr", "hrd", "hrh", "hrhf", "hrhh", 
+  "hri", "hrn", "hrnf", "hrnh", "hrx", "hrxf", "hrxh", "lat", "lon", 
+  "pmd", "prec", "pres", "psd", "q", "qa", "qmax", "qmin", "racha", "sol", 
+  "solh", "solhd", "solhf", "tad", "tadf", "tadh", "tam", "tamax", 
+  "tamaxf", "tamaxh", "tamin", "taminf", "taminh", "tx", "txd", "txf", "txh", 
+  "vv", "vvd", "vvh", "vvhd", "vvhf", "vvhh", "w", "ww"
+)
+
+# Forecast variables from analysis
+# Compares current observations (39 vars), historical daily (25 vars), and forecast variables
+
+# Load necessary libraries
+suppressPackageStartupMessages({
+  library(curl)
+  library(jsonlite)
+  library(dplyr)
+})
+
+# Load API key
+source("auth/keys.R")
+
+cat("=== AEMET API VARIABLE COMPATIBILITY ANALYSIS ===\n\n")
+
+# Variables from current observations (from inspect_variables.R output)
+current_vars = c(
+  "alt", "bh", "ca", "cel", "dd", "ddd", "dp", "dv", "dvi", "dvm", "fxi", "fxv", 
+  "hr", "lat", "lon", "pmax", "pmin", "prec", "pres", "qp", "r", "rachamax", 
   "ri", "rs", "sol", "ta", "tamax", "tamin", "ts", "tuv", "v", "vis", "vmax", 
   "vv", "w", "ww", "xi", "za"
 )
@@ -97,11 +130,11 @@ for(i in 1:nrow(forecast_mapping)) {
 cat("\n\nRECOMMENDATIONS FOR EXPANDED DATA COLLECTION:\n")
 cat("=============================================\n")
 cat("1. SAFE VARIABLES (available in all endpoints):\n")
-safe_vars = intersect(current_historical_common, c("ta", "tamax", "tamin", "prec", "hr", "p", "vv"))
+safe_vars = intersect(current_historical_common, c("ta", "tamax", "tamin", "prec", "hr", "pres", "vv"))
 cat("   ", paste(safe_vars, collapse = ", "), "\n\n")
 
 cat("2. CURRENT-ONLY VARIABLES (good for real-time expansion):\n")
-realtime_good = intersect(current_only, c("rachamax", "vis", "dp", "pres"))
+realtime_good = intersect(current_only, c("rachamax", "vis", "dp"))
 cat("   ", paste(realtime_good, collapse = ", "), "\n\n")
 
 cat("3. FORECAST CAPABILITIES:\n")
