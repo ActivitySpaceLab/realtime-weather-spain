@@ -118,7 +118,7 @@ get_municipal_forecast = function(municipio_code) {
     # Process each forecast day
     forecast_list = list()
     
-    for(i in 1:nrow(pred_days)) {
+    for(i in seq_len(nrow(pred_days))) {
       day_data = pred_days[i, ]
       
       # Extract key variables, handling nested structures
@@ -140,8 +140,6 @@ get_municipal_forecast = function(municipio_code) {
       forecast_row$humedad_maxima = if("humedadRelativa.maxima" %in% names(day_data)) day_data$humedadRelativa.maxima else NA
       forecast_row$humedad_minima = if("humedadRelativa.minima" %in% names(day_data)) day_data$humedadRelativa.minima else NA
       forecast_row$humedad_dato = if("humedadRelativa.dato" %in% names(day_data)) day_data$humedadRelativa.dato else NA
-        forecast_row$humedad_dato = NA
-      }
       
       # Precipitation probability
       if("probPrecipitacion" %in% names(day_data)) {
@@ -200,8 +198,8 @@ cat("Loaded", nrow(municipalities_data), "municipalities\n")
 all_municipality_codes = municipalities_data$CUMUN
 
 # For testing/development, set SAMPLE_SIZE to limit municipalities
-# Set to NULL or a large number for full collection
-SAMPLE_SIZE = 50  # Change this to NULL for all municipalities
+# Start with a small number to test API rate limits
+SAMPLE_SIZE = 5  # Change this to NULL for all municipalities
 
 if(!is.null(SAMPLE_SIZE) && SAMPLE_SIZE < length(all_municipality_codes)) {
   major_municipalities = as.character(head(all_municipality_codes, SAMPLE_SIZE))
@@ -233,8 +231,8 @@ for(i in seq_along(major_municipalities)) {
     successful_count = successful_count + 1
   }
   
-  # Be polite to the API - longer delay for large scale collection
-  Sys.sleep(if(length(major_municipalities) > 100) 2 else 1)
+  # Be polite to the API - increased delay to handle rate limiting
+  Sys.sleep(if(length(major_municipalities) > 100) 5 else 3)
 }
 
 if(length(all_forecasts) > 0) {
